@@ -8,181 +8,280 @@
 <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --wood-base:#a9764f;
-    --wood-dark:#7a4e2c;
-    --wood-light:#c99464;
-    --paper:#f3ecd9;
-    --ink-p1:#2452c4;
-    --ink-p1-dark:#173a91;
-    --ink-p2:#c4302b;
-    --ink-p2-dark:#8f1f1b;
-    --graphite:#2b2723;
-    --pencil-yellow:#e8b23c;
+    --wood-base:#a9764f; --wood-dark:#7a4e2c; --wood-light:#c99464;
+    --paper:#f3ecd9; --graphite:#2b2723; --pencil-yellow:#e8b23c;
+    --coin:#e8b23c;
   }
   *{box-sizing:border-box;}
-  html,body{
-    margin:0; padding:0; height:100%;
-    background:#3a2b1c;
-    font-family:'Kalam', cursive;
-    color:var(--graphite);
-    overflow:hidden;
-    -webkit-tap-highlight-color:transparent;
-  }
-  #app{
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:10px;
-  }
+  html,body{ margin:0; padding:0; height:100%; background:#3a2b1c; font-family:'Kalam', cursive; color:var(--graphite); overflow:hidden; -webkit-tap-highlight-color:transparent; }
+  #app{ height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px; }
   .sheet{
-    width:100%;
-    max-width:820px;
-    background:var(--paper);
-    border-radius:6px;
+    width:100%; max-width:820px; background:var(--paper); border-radius:6px;
     box-shadow:0 18px 40px rgba(0,0,0,0.5), 0 0 0 2px rgba(0,0,0,0.15) inset;
-    padding:14px 16px 10px;
-    position:relative;
-    background-image:
-      linear-gradient(var(--paper), var(--paper)),
-      repeating-linear-gradient(transparent, transparent 27px, rgba(70,90,160,0.14) 28px);
+    padding:14px 16px 12px; position:relative;
+    background-image: linear-gradient(var(--paper), var(--paper)), repeating-linear-gradient(transparent, transparent 27px, rgba(70,90,160,0.14) 28px);
+    max-height:94vh; overflow:auto;
   }
-  .sheet::before{
-    content:"";
-    position:absolute; left:34px; top:0; bottom:0;
-    width:2px; background:rgba(196,48,43,0.35);
+  .sheet::before{ content:""; position:absolute; left:34px; top:0; bottom:0; width:2px; background:rgba(196,48,43,0.35); }
+  header{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding-left:24px; margin-bottom:6px; flex-wrap:wrap; }
+  h1{ font-family:'Permanent Marker', cursive; font-size:clamp(20px,4.5vw,30px); margin:0; transform:rotate(-1.5deg); letter-spacing:1px; cursor:pointer; }
+  .coin-pill{ display:flex; align-items:center; gap:6px; background:#fff; border:2px solid var(--graphite); border-radius:16px; padding:4px 12px; box-shadow:2px 2px 0 rgba(0,0,0,0.15); font-weight:700; font-size:15px; }
+  .coin-dot{ width:16px; height:16px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff6d8, var(--coin) 60%, #a8862a); box-shadow:0 0 0 1px #8a6a1c inset; display:inline-block; }
+  .screen{ display:none; padding-left:24px; }
+  .screen.active{ display:block; }
+  @media (max-width:480px){ .screen{ padding-left:0; } header{ padding-left:0; } .sheet::before{ display:none; } }
+
+  /* ---- Menu ---- */
+  .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
+  @media (max-width:520px){ .menu-grid{ grid-template-columns:1fr; } }
+  .menu-card{
+    background:#fff; border:2px solid var(--graphite); border-radius:12px; padding:16px;
+    box-shadow:3px 4px 0 rgba(0,0,0,0.18); cursor:pointer; transition:transform .1s ease;
   }
-  header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    padding-left:24px;
-    margin-bottom:4px;
-    flex-wrap:wrap;
-  }
-  h1{
-    font-family:'Permanent Marker', cursive;
-    font-size:clamp(22px,4.5vw,32px);
-    margin:0;
-    color:var(--graphite);
-    transform:rotate(-1.5deg);
-    letter-spacing:1px;
-  }
-  .score-row{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-size:15px;
-  }
-  .score-pill{
-    display:flex; align-items:center; gap:6px;
-    background:#fff;
-    border:2px solid var(--graphite);
-    border-radius:16px;
-    padding:3px 12px 3px 8px;
-    box-shadow:2px 2px 0 rgba(0,0,0,0.15);
-  }
-  .dot{width:12px;height:12px;border-radius:50%;display:inline-block;}
-  .dot.p1{background:var(--ink-p1);}
-  .dot.p2{background:var(--ink-p2);}
-  .score-num{font-weight:700; font-size:18px;}
-  .round-tag{
-    font-size:13px; opacity:0.75; padding-left:24px;
-    margin-bottom:2px;
-  }
-  .stage{
-    position:relative;
-    margin-left:24px;
-    border-radius:4px;
-    overflow:hidden;
-    box-shadow:0 6px 18px rgba(0,0,0,0.35) inset, 0 0 0 3px var(--wood-dark);
-    touch-action:none;
-    cursor:grab;
-  }
-  canvas{ display:block; width:100%; height:auto; }
-  .banner{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:12px;
-    background:rgba(20,14,8,0.55);
-    color:#fff;
-    text-align:center;
-    opacity:0; pointer-events:none;
-    transition:opacity .25s ease;
-    font-family:'Permanent Marker', cursive;
-    padding:20px;
-  }
-  .banner.show{ opacity:1; pointer-events:auto; }
-  .banner .big{ font-size:clamp(24px,5vw,38px); text-shadow:0 3px 0 rgba(0,0,0,0.4); }
-  .banner .small{ font-family:'Kalam',cursive; font-size:15px; opacity:0.9; max-width:340px; }
-  button.action{
-    font-family:'Kalam', cursive;
-    font-weight:700;
-    font-size:15px;
-    background:var(--pencil-yellow);
-    color:var(--graphite);
-    border:2px solid var(--graphite);
-    border-radius:10px;
-    padding:8px 18px;
-    cursor:pointer;
-    box-shadow:2px 3px 0 rgba(0,0,0,0.5);
-    transition:transform .08s ease;
-  }
+  .menu-card:hover{ transform:translateY(-2px); }
+  .menu-card h3{ margin:0 0 4px; font-family:'Permanent Marker',cursive; font-size:18px; }
+  .menu-card p{ margin:0; font-size:13px; opacity:0.75; }
+  .menu-card .icon{ font-size:26px; margin-bottom:6px; display:block; }
+
+  /* ---- Lobby ---- */
+  .lobby-box{ background:#fff; border:2px solid var(--graphite); border-radius:12px; padding:20px; margin-top:10px; max-width:420px; box-shadow:3px 4px 0 rgba(0,0,0,0.18); }
+  .code-display{ font-family:'Permanent Marker',cursive; font-size:40px; letter-spacing:6px; text-align:center; margin:10px 0; color:#2452c4; }
+  input.code-input{ font-family:'Kalam',cursive; font-size:22px; letter-spacing:4px; text-align:center; text-transform:uppercase; width:100%; padding:10px; border:2px solid var(--graphite); border-radius:8px; margin:8px 0; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .status-line{ font-size:13px; opacity:0.8; margin-top:6px; min-height:18px; }
+  .spinner{ display:inline-block; width:12px; height:12px; border:2px solid rgba(0,0,0,0.2); border-top-color:var(--graphite); border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:-2px; margin-right:6px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ---- Shop ---- */
+  .shop-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:10px; }
+  .skin-card{ background:#fff; border:2px solid var(--graphite); border-radius:12px; padding:12px; text-align:center; box-shadow:2px 3px 0 rgba(0,0,0,0.15); }
+  .skin-preview{ width:100%; height:44px; display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+  .skin-name{ font-weight:700; font-size:14px; margin:2px 0; }
+  .skin-price{ font-size:13px; opacity:0.8; margin-bottom:6px; }
+
+  /* ---- Buttons ---- */
+  button.action{ font-family:'Kalam', cursive; font-weight:700; font-size:14px; background:var(--pencil-yellow); color:var(--graphite); border:2px solid var(--graphite); border-radius:10px; padding:8px 16px; cursor:pointer; box-shadow:2px 3px 0 rgba(0,0,0,0.5); transition:transform .08s ease; }
   button.action:active{ transform:translateY(2px); box-shadow:1px 1px 0 rgba(0,0,0,0.5); }
-  footer{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:8px 6px 2px 24px;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-  .hint{ font-size:13px; opacity:0.7; }
-  .turn-indicator{
-    display:flex; align-items:center; gap:6px;
-    font-size:14px; font-weight:700;
-  }
-  .turn-indicator .dot{width:10px;height:10px;}
-  #resetBtn{ font-size:13px; padding:5px 12px; }
-  @media (max-width:480px){
-    .sheet{padding:10px 10px 6px;}
-    header, .round-tag, .stage, footer{ margin-left:20px; padding-left:0; }
-    .sheet::before{ left:26px; }
-  }
+  button.action:disabled{ opacity:0.5; cursor:default; }
+  button.ghost{ background:#fff; }
+  button.small{ font-size:12px; padding:5px 10px; }
+  button.equip-btn.equipped{ background:#7ed321; }
+
+  /* ---- Game screen ---- */
+  .score-row{ display:flex; align-items:center; gap:10px; font-size:15px; }
+  .score-pill{ display:flex; align-items:center; gap:6px; background:#fff; border:2px solid var(--graphite); border-radius:16px; padding:3px 12px 3px 8px; box-shadow:2px 2px 0 rgba(0,0,0,0.15); }
+  .dot{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+  .score-num{ font-weight:700; font-size:18px; }
+  .round-tag{ font-size:13px; opacity:0.75; margin-bottom:4px; }
+  .stage{ position:relative; border-radius:4px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.35) inset, 0 0 0 3px var(--wood-dark); touch-action:none; cursor:grab; }
+  canvas{ display:block; width:100%; height:auto; }
+  .banner{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:rgba(20,14,8,0.6); color:#fff; text-align:center; opacity:0; pointer-events:none; transition:opacity .25s ease; font-family:'Permanent Marker', cursive; padding:20px; }
+  .banner.show{ opacity:1; pointer-events:auto; }
+  .banner .big{ font-size:clamp(22px,5vw,34px); text-shadow:0 3px 0 rgba(0,0,0,0.4); }
+  .banner .small{ font-family:'Kalam',cursive; font-size:14px; opacity:0.9; max-width:340px; }
+  footer{ display:flex; align-items:center; justify-content:space-between; padding:8px 6px 2px 0; gap:10px; flex-wrap:wrap; }
+  .hint{ font-size:12px; opacity:0.7; }
+  .turn-indicator{ display:flex; align-items:center; gap:6px; font-size:14px; font-weight:700; }
+  .turn-indicator .dot{ width:10px; height:10px; }
+  .back-link{ font-size:13px; text-decoration:underline; cursor:pointer; opacity:0.75; }
+  .back-link:hover{ opacity:1; }
 </style>
 </head>
 <body>
 <div id="app">
   <div class="sheet">
     <header>
-      <h1>Pen Fight</h1>
-      <div class="score-row">
-        <div class="score-pill"><span class="dot p1"></span><span class="score-num" id="scoreP1">0</span></div>
-        <span style="opacity:.5">vs</span>
-        <div class="score-pill"><span class="score-num" id="scoreP2">0</span><span class="dot p2"></span></div>
-      </div>
+      <h1 id="titleHome">Pen Fight</h1>
+      <div class="coin-pill"><span class="coin-dot"></span><span id="coinCount">100</span></div>
     </header>
-    <div class="round-tag">Round <span id="roundNum">1</span> · First to 3 wins the fight</div>
 
-    <div class="stage" id="stage">
-      <canvas id="game" width="760" height="380"></canvas>
-      <div class="banner" id="banner">
-        <div class="big" id="bannerBig">Round 1</div>
-        <div class="small" id="bannerSmall">Blue goes first. Drag your pen backward and let go to flick it.</div>
-        <button class="action" id="bannerBtn">Start</button>
+    <!-- MENU -->
+    <div class="screen active" id="screen-menu">
+      <div class="menu-grid">
+        <div class="menu-card" id="btnLocal">
+          <span class="icon">🖊️</span>
+          <h3>Local Duel</h3>
+          <p>Two players, one device. Pass it back and forth on the bench.</p>
+        </div>
+        <div class="menu-card" id="btnCreate">
+          <span class="icon">🏠</span>
+          <h3>Create Room</h3>
+          <p>Get a room code and challenge a friend on another device.</p>
+        </div>
+        <div class="menu-card" id="btnJoin">
+          <span class="icon">🔑</span>
+          <h3>Join Room</h3>
+          <p>Got a code from a friend? Enter it and duel online.</p>
+        </div>
+        <div class="menu-card" id="btnShop">
+          <span class="icon">🛒</span>
+          <h3>Pen Shop</h3>
+          <p>Spend coins earned from wins on new pen skins.</p>
+        </div>
       </div>
     </div>
 
-    <footer>
-      <div class="turn-indicator" id="turnIndicator"><span class="dot p1"></span> Blue's turn — drag your pen</div>
-      <div class="hint">pull back &amp; release to flick, like a pencil-case duel</div>
-      <button class="action" id="resetBtn">New Match</button>
-    </footer>
+    <!-- CREATE ROOM -->
+    <div class="screen" id="screen-create">
+      <div class="back-link" data-back>← back to menu</div>
+      <div class="lobby-box">
+        <div style="font-weight:700;">Your room code</div>
+        <div class="code-display" id="createdCode">----</div>
+        <div class="status-line" id="createStatus"><span class="spinner"></span>waiting for someone to join…</div>
+        <div class="row" style="margin-top:10px;">
+          <button class="action small" id="copyCodeBtn">Copy code</button>
+          <button class="action small ghost" id="cancelCreateBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOIN ROOM -->
+    <div class="screen" id="screen-join">
+      <div class="back-link" data-back>← back to menu</div>
+      <div class="lobby-box">
+        <div style="font-weight:700;">Enter room code</div>
+        <input class="code-input" id="joinInput" maxlength="5" placeholder="ABCDE">
+        <div class="row">
+          <button class="action" id="joinBtn">Join</button>
+        </div>
+        <div class="status-line" id="joinStatus"></div>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="screen" id="screen-shop">
+      <div class="back-link" data-back>← back to menu</div>
+      <div class="round-tag">Equip a skin for your pen. Coins are earned by winning rounds.</div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </div>
+
+    <!-- GAME -->
+    <div class="screen" id="screen-game">
+      <div class="back-link" data-back id="leaveGameLink">← leave match</div>
+      <header style="padding-left:0;">
+        <div class="score-row">
+          <div class="score-pill"><span class="dot" id="dotP1"></span><span class="score-num" id="scoreP1">0</span></div>
+          <span style="opacity:.5">vs</span>
+          <div class="score-pill"><span class="score-num" id="scoreP2">0</span><span class="dot" id="dotP2"></span></div>
+        </div>
+        <div class="round-tag" style="margin:0;">Round <span id="roundNum">1</span></div>
+      </header>
+
+      <div class="stage" id="stage">
+        <canvas id="game" width="760" height="380"></canvas>
+        <div class="banner" id="banner">
+          <div class="big" id="bannerBig">Round 1</div>
+          <div class="small" id="bannerSmall"></div>
+          <button class="action" id="bannerBtn">Start</button>
+        </div>
+      </div>
+
+      <footer>
+        <div class="turn-indicator" id="turnIndicator"></div>
+        <div class="hint">pull back &amp; release to flick your pen</div>
+      </footer>
+    </div>
+
   </div>
 </div>
 
 <script>
 (function(){
+  // ================= PROFILE (coins + skins) =================
+  const SKINS = [
+    { id:'classic-blue', name:'Classic Blue',  price:0,   body:'#2452c4', dark:'#173a91' },
+    { id:'classic-red',  name:'Classic Red',   price:0,   body:'#c4302b', dark:'#8f1f1b' },
+    { id:'neon-lime',    name:'Neon Lime',     price:50,  body:'#7ed321', dark:'#4c8a10' },
+    { id:'sunset',       name:'Sunset Orange', price:80,  body:'#f2994a', dark:'#b5622a' },
+    { id:'silver',       name:'Silver Streak', price:120, body:'#b0b8c1', dark:'#6e7580' },
+    { id:'gold',         name:'Gold Nib',      price:150, body:'#e8c34a', dark:'#a8862a' },
+    { id:'galaxy',       name:'Galaxy Purple', price:200, body:'#8e44ad', dark:'#5b2c6f' },
+    { id:'hot-pink',     name:'Hot Pink',      price:250, body:'#ff3d81', dark:'#8b1e46' }
+  ];
+  function skinById(id){ return SKINS.find(s=>s.id===id) || SKINS[0]; }
+
+  let profile = { coins:100, owned:['classic-blue','classic-red'], equipped:'classic-blue' };
+
+  async function loadProfile(){
+    try{
+      const r = await window.storage.get('profile', false);
+      if(r && r.value){ profile = JSON.parse(r.value); }
+      else { await saveProfile(); }
+    }catch(e){ await saveProfile(); }
+    renderCoins();
+  }
+  async function saveProfile(){
+    try{ await window.storage.set('profile', JSON.stringify(profile), false); }catch(e){ console.error('save profile failed', e); }
+  }
+  function renderCoins(){ document.getElementById('coinCount').textContent = profile.coins; }
+  async function awardCoins(n){
+    profile.coins += n;
+    await saveProfile();
+    renderCoins();
+  }
+
+  // ================= SCREEN NAV =================
+  const screens = ['menu','create','join','shop','game'];
+  function showScreen(name){
+    screens.forEach(s=>document.getElementById('screen-'+s).classList.toggle('active', s===name));
+  }
+  document.querySelectorAll('[data-back]').forEach(el=>el.addEventListener('click', ()=>{
+    leaveRoomIfAny();
+    showScreen('menu');
+  }));
+  document.getElementById('titleHome').addEventListener('click', ()=>{ leaveRoomIfAny(); showScreen('menu'); });
+
+  document.getElementById('btnLocal').addEventListener('click', ()=>{ startLocalGame(); });
+  document.getElementById('btnShop').addEventListener('click', ()=>{ renderShop(); showScreen('shop'); });
+  document.getElementById('btnCreate').addEventListener('click', ()=>{ createRoom(); });
+  document.getElementById('btnJoin').addEventListener('click', ()=>{ showScreen('join'); document.getElementById('joinStatus').textContent=''; });
+
+  // ================= SHOP =================
+  function renderShop(){
+    const grid = document.getElementById('shopGrid');
+    grid.innerHTML = '';
+    SKINS.forEach(skin=>{
+      const owned = profile.owned.includes(skin.id);
+      const equipped = profile.equipped === skin.id;
+      const card = document.createElement('div');
+      card.className = 'skin-card';
+      card.innerHTML = `
+        <div class="skin-preview"><svg width="70" height="30" viewBox="0 0 70 30">
+          <rect x="8" y="11" width="42" height="8" rx="4" fill="${skin.body}"/>
+          <polygon points="50,11 62,15 50,19" fill="${skin.dark}"/>
+          <rect x="15" y="7" width="10" height="3" fill="rgba(255,255,255,0.6)"/>
+        </svg></div>
+        <div class="skin-name">${skin.name}</div>
+        <div class="skin-price">${skin.price===0?'Free':'🪙 '+skin.price}</div>
+        <button class="action small equip-btn ${equipped?'equipped':''}" data-id="${skin.id}">
+          ${equipped?'Equipped':(owned?'Equip':'Buy')}
+        </button>`;
+      grid.appendChild(card);
+    });
+    grid.querySelectorAll('.equip-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.getAttribute('data-id');
+        const skin = skinById(id);
+        if(profile.owned.includes(id)){
+          profile.equipped = id;
+          await saveProfile();
+          renderShop();
+        } else if(profile.coins >= skin.price){
+          profile.coins -= skin.price;
+          profile.owned.push(id);
+          profile.equipped = id;
+          await saveProfile();
+          renderCoins();
+          renderShop();
+        } else {
+          btn.textContent = 'Not enough coins';
+          setTimeout(()=>renderShop(), 900);
+        }
+      });
+    });
+  }
+
+  // ================= GAME ENGINE (shared by local + online) =================
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
@@ -195,201 +294,93 @@
   const scoreP2El = document.getElementById('scoreP2');
   const roundNumEl = document.getElementById('roundNum');
   const turnIndicator = document.getElementById('turnIndicator');
-  const resetBtn = document.getElementById('resetBtn');
+  const dotP1 = document.getElementById('dotP1');
+  const dotP2 = document.getElementById('dotP2');
 
-  const MARGIN = 26; // desk edge margin - going beyond this = falling off
-  const PEN_LEN = 46, PEN_W = 11, RADIUS = 15;
-  const FRICTION = 0.983;
-  const ANG_FRICTION = 0.95;
-  const STOP_THRESH = 0.06;
-  const MAX_PULL = 110;
-  const POWER_SCALE = 0.17;
-  const WIN_SCORE = 3;
+  const MARGIN = 26, PEN_LEN = 46, PEN_W = 11, RADIUS = 15;
+  const FRICTION = 0.983, ANG_FRICTION = 0.95, STOP_THRESH = 0.06;
+  const MAX_PULL = 110, POWER_SCALE = 0.17, WIN_SCORE = 3;
 
   let pens, turn, round, scores, isSimulating, matchOver, dragging, dragStart, dragCurrent, fallenIndex, roundLocked;
+  let mode = 'local';
+  let mySlot = 0;
+  let names = ['Blue','Red'];
 
-  function initDesk(){
+  function seededAng(seq){ return ((seq*37)%7-3)/120; }
+  function startPositions(){ return [ {x:W*0.24, y:H*0.5}, {x:W*0.76, y:H*0.5} ]; }
+
+  function makePens(skinIds){
+    const start = startPositions();
+    const s0 = skinById(skinIds[0]), s1 = skinById(skinIds[1]);
     pens = [
-      { x: W*0.24, y: H*0.5, vx:0, vy:0, angle: 0.06, angVel:0, color: getComputedStyle(document.documentElement).getPropertyValue('--ink-p1').trim(), dark: getComputedStyle(document.documentElement).getPropertyValue('--ink-p1-dark').trim(), alive:true, fallProgress:0 },
-      { x: W*0.76, y: H*0.5, vx:0, vy:0, angle: Math.PI-0.06, angVel:0, color: getComputedStyle(document.documentElement).getPropertyValue('--ink-p2').trim(), dark: getComputedStyle(document.documentElement).getPropertyValue('--ink-p2-dark').trim(), alive:true, fallProgress:0 }
+      { x:start[0].x, y:start[0].y, vx:0, vy:0, angle:0.06, angVel:0, color:s0.body, dark:s0.dark, alive:true, fallProgress:0 },
+      { x:start[1].x, y:start[1].y, vx:0, vy:0, angle:Math.PI-0.06, angVel:0, color:s1.body, dark:s1.dark, alive:true, fallProgress:0 }
     ];
   }
 
-  function resetMatch(){
-    scores = [0,0];
-    round = 1;
-    turn = 0;
-    matchOver = false;
-    updateScores();
-    startRound(true);
-  }
-
-  function startRound(showIntro){
-    initDesk();
-    isSimulating = false;
-    roundLocked = false;
-    fallenIndex = -1;
-    roundNumEl.textContent = round;
-    updateTurnIndicator();
-    if(showIntro){
-      showBanner('Round '+round, (turn===0?'Blue':'Red')+' goes first. Drag your pen backward and let go to flick it.', 'Start');
-    }
-  }
-
-  function updateScores(){
-    scoreP1El.textContent = scores[0];
-    scoreP2El.textContent = scores[1];
-  }
-
+  function updateScores(){ scoreP1El.textContent = scores[0]; scoreP2El.textContent = scores[1]; }
+  function updateDots(){ dotP1.style.background = pens[0].color; dotP2.style.background = pens[1].color; }
   function updateTurnIndicator(){
     if(matchOver) return;
-    const cls = turn===0 ? 'p1':'p2';
-    const name = turn===0 ? 'Blue' : 'Red';
-    turnIndicator.innerHTML = '<span class="dot '+cls+'"></span> '+name+'\'s turn — drag your pen';
+    let label;
+    if(mode==='online'){
+      label = (turn===mySlot) ? 'Your turn — drag your pen' : "Opponent's turn — waiting…";
+    } else {
+      label = names[turn]+"'s turn — drag your pen";
+    }
+    turnIndicator.innerHTML = '<span class="dot" style="background:'+pens[turn].color+'"></span> '+label;
   }
-
-  function showBanner(big, small, btnText){
-    bannerBig.textContent = big;
-    bannerSmall.textContent = small;
-    bannerBtn.textContent = btnText;
-    banner.classList.add('show');
-  }
+  function showBanner(big, small, btnText){ bannerBig.textContent=big; bannerSmall.textContent=small; bannerBtn.textContent=btnText; banner.classList.add('show'); }
   function hideBanner(){ banner.classList.remove('show'); }
-
-  bannerBtn.addEventListener('click', ()=>{
-    if(matchOver){ resetMatch(); }
-    hideBanner();
-  });
-  resetBtn.addEventListener('click', ()=>{ resetMatch(); hideBanner(); });
 
   // ---------- Drawing ----------
   function drawWoodDesk(){
-    ctx.fillStyle = '#a9764f';
-    ctx.fillRect(0,0,W,H);
-    // planks
+    ctx.fillStyle = '#a9764f'; ctx.fillRect(0,0,W,H);
     const plankH = 62;
-    for(let y=0;y<H;y+=plankH){
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
-    }
-    // grain streaks
-    ctx.save();
-    ctx.globalAlpha = 0.18;
+    for(let y=0;y<H;y+=plankH){ ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    ctx.save(); ctx.globalAlpha=0.18;
     for(let i=0;i<26;i++){
-      const gy = (i*37 + 13) % H;
-      const amp = 6 + (i%5);
-      ctx.strokeStyle = i%2===0 ? '#7a4e2c' : '#c99464';
-      ctx.lineWidth = 1.4;
+      const gy=(i*37+13)%H, amp=6+(i%5);
+      ctx.strokeStyle = i%2===0?'#7a4e2c':'#c99464'; ctx.lineWidth=1.4;
       ctx.beginPath();
-      for(let x=0;x<=W;x+=20){
-        const yy = gy + Math.sin((x+i*40)/60)*amp;
-        if(x===0) ctx.moveTo(x,yy); else ctx.lineTo(x,yy);
-      }
+      for(let x=0;x<=W;x+=20){ const yy=gy+Math.sin((x+i*40)/60)*amp; if(x===0) ctx.moveTo(x,yy); else ctx.lineTo(x,yy); }
       ctx.stroke();
     }
     ctx.restore();
-    // desk edge (danger zone) markers
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,235,180,0.55)';
-    ctx.setLineDash([8,7]);
-    ctx.lineWidth = 2;
-    ctx.strokeRect(MARGIN, MARGIN, W-2*MARGIN, H-2*MARGIN);
-    ctx.restore();
-    // vignette for edge of table
-    const grad = ctx.createRadialGradient(W/2,H/2, H*0.25, W/2,H/2, H*0.85);
-    grad.addColorStop(0,'rgba(0,0,0,0)');
-    grad.addColorStop(1,'rgba(0,0,0,0.35)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,W,H);
+    ctx.save(); ctx.strokeStyle='rgba(255,235,180,0.55)'; ctx.setLineDash([8,7]); ctx.lineWidth=2;
+    ctx.strokeRect(MARGIN,MARGIN,W-2*MARGIN,H-2*MARGIN); ctx.restore();
+    const grad = ctx.createRadialGradient(W/2,H/2,H*0.25,W/2,H/2,H*0.85);
+    grad.addColorStop(0,'rgba(0,0,0,0)'); grad.addColorStop(1,'rgba(0,0,0,0.35)');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
   }
-
+  function roundedRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
   function drawPen(p){
     if(!p.alive && p.fallProgress>=1) return;
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle);
-    let scale = 1, alpha = 1;
-    if(!p.alive){
-      scale = Math.max(0, 1 - p.fallProgress);
-      alpha = scale;
-    }
-    ctx.scale(scale, scale);
-    ctx.globalAlpha = alpha;
-    // shadow
-    ctx.save();
-    ctx.translate(3,4);
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-    roundedRect(-PEN_LEN/2, -PEN_W/2, PEN_LEN, PEN_W, 5);
-    ctx.fill();
-    ctx.restore();
-    // body
-    ctx.fillStyle = p.color;
-    roundedRect(-PEN_LEN/2, -PEN_W/2, PEN_LEN*0.72, PEN_W, 4);
-    ctx.fill();
-    // tip
-    ctx.fillStyle = p.dark;
-    ctx.beginPath();
-    ctx.moveTo(PEN_LEN*0.22, -PEN_W/2);
-    ctx.lineTo(PEN_LEN/2, 0);
-    ctx.lineTo(PEN_LEN*0.22, PEN_W/2);
-    ctx.closePath();
-    ctx.fill();
-    // clip
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.fillRect(-PEN_LEN*0.05, -PEN_W/2-3, PEN_LEN*0.16, 3.5);
-    // highlight stripe
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.fillRect(-PEN_LEN/2+3, -PEN_W/2+2, PEN_LEN*0.6, 2);
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle);
+    let scale=1, alpha=1;
+    if(!p.alive){ scale=Math.max(0,1-p.fallProgress); alpha=scale; }
+    ctx.scale(scale,scale); ctx.globalAlpha=alpha;
+    ctx.save(); ctx.translate(3,4); ctx.fillStyle='rgba(0,0,0,0.25)'; roundedRect(-PEN_LEN/2,-PEN_W/2,PEN_LEN,PEN_W,5); ctx.fill(); ctx.restore();
+    ctx.fillStyle=p.color; roundedRect(-PEN_LEN/2,-PEN_W/2,PEN_LEN*0.72,PEN_W,4); ctx.fill();
+    ctx.fillStyle=p.dark; ctx.beginPath(); ctx.moveTo(PEN_LEN*0.22,-PEN_W/2); ctx.lineTo(PEN_LEN/2,0); ctx.lineTo(PEN_LEN*0.22,PEN_W/2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fillRect(-PEN_LEN*0.05,-PEN_W/2-3,PEN_LEN*0.16,3.5);
+    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fillRect(-PEN_LEN/2+3,-PEN_W/2+2,PEN_LEN*0.6,2);
     ctx.restore();
   }
-
-  function roundedRect(x,y,w,h,r){
-    ctx.beginPath();
-    ctx.moveTo(x+r,y);
-    ctx.arcTo(x+w,y,x+w,y+h,r);
-    ctx.arcTo(x+w,y+h,x,y+h,r);
-    ctx.arcTo(x,y+h,x,y,r);
-    ctx.arcTo(x,y,x+w,y,r);
-    ctx.closePath();
-  }
-
   function drawAimLine(){
     if(!dragging) return;
     const p = pens[turn];
-    let dx = dragCurrent.x - dragStart.x;
-    let dy = dragCurrent.y - dragStart.y;
-    let dist = Math.hypot(dx,dy);
+    let dx=dragCurrent.x-dragStart.x, dy=dragCurrent.y-dragStart.y, dist=Math.hypot(dx,dy);
     if(dist>MAX_PULL){ const s=MAX_PULL/dist; dx*=s; dy*=s; dist=MAX_PULL; }
     const power = dist/MAX_PULL;
-    // aim direction is opposite the drag (slingshot)
-    const aimX = p.x - dx;
-    const aimY = p.y - dy;
-    ctx.save();
-    ctx.strokeStyle = p.color;
-    ctx.lineWidth = 3;
-    ctx.setLineDash([6,6]);
-    ctx.globalAlpha = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.lineTo(aimX, aimY);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // power arrow head
-    ctx.beginPath();
-    ctx.arc(aimX, aimY, 5+power*4, 0, Math.PI*2);
-    ctx.fillStyle = p.color;
-    ctx.globalAlpha = 0.9;
-    ctx.fill();
+    const aimX = p.x-dx, aimY = p.y-dy;
+    ctx.save(); ctx.strokeStyle=p.color; ctx.lineWidth=3; ctx.setLineDash([6,6]); ctx.globalAlpha=0.8;
+    ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(aimX,aimY); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(aimX,aimY,5+power*4,0,Math.PI*2); ctx.fillStyle=p.color; ctx.globalAlpha=0.9; ctx.fill();
     ctx.restore();
-
-    // power meter bar
-    ctx.save();
-    const barW = 90, barH = 8, bx = p.x-barW/2, by = p.y - 34;
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    roundedRect(bx,by,barW,barH,4); ctx.fill();
-    ctx.fillStyle = p.color;
-    roundedRect(bx,by,barW*power,barH,4); ctx.fill();
+    ctx.save(); const barW=90,barH=8,bx=p.x-barW/2,by=p.y-34;
+    ctx.fillStyle='rgba(0,0,0,0.35)'; roundedRect(bx,by,barW,barH,4); ctx.fill();
+    ctx.fillStyle=p.color; roundedRect(bx,by,barW*power,barH,4); ctx.fill();
     ctx.restore();
   }
 
@@ -397,134 +388,104 @@
   function stepPhysics(){
     let moving = false;
     for(const p of pens){
-      if(!p.alive){
-        p.fallProgress += 0.045;
-        p.x += p.vx*0.4; p.y += p.vy*0.4;
-        moving = moving || p.fallProgress < 1;
-        continue;
-      }
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vx *= FRICTION;
-      p.vy *= FRICTION;
-      p.angle += p.angVel;
-      p.angVel *= ANG_FRICTION;
+      if(!p.alive){ p.fallProgress+=0.045; p.x+=p.vx*0.4; p.y+=p.vy*0.4; moving = moving || p.fallProgress<1; continue; }
+      p.x+=p.vx; p.y+=p.vy; p.vx*=FRICTION; p.vy*=FRICTION;
+      p.angle+=p.angVel; p.angVel*=ANG_FRICTION;
       if(Math.hypot(p.vx,p.vy) > STOP_THRESH) moving = true;
     }
-
-    // collision between the two pens (only if both alive)
     if(pens[0].alive && pens[1].alive){
-      const a = pens[0], b = pens[1];
-      const dx = b.x-a.x, dy = b.y-a.y;
-      const dist = Math.hypot(dx,dy);
-      const minDist = RADIUS*2*0.72;
-      if(dist < minDist && dist>0){
-        const nx = dx/dist, ny = dy/dist;
-        // separate
-        const overlap = (minDist-dist)/2;
-        a.x -= nx*overlap; a.y -= ny*overlap;
-        b.x += nx*overlap; b.y += ny*overlap;
-        // relative velocity along normal
-        const rvx = b.vx-a.vx, rvy = b.vy-a.vy;
-        const velAlongNormal = rvx*nx+rvy*ny;
-        if(velAlongNormal < 0){
-          const restitution = 0.92;
-          const impulse = -(1+restitution)*velAlongNormal/2;
-          a.vx -= impulse*nx; a.vy -= impulse*ny;
-          b.vx += impulse*nx; b.vy += impulse*ny;
-          a.angVel += (Math.random()-0.5)*0.08;
-          b.angVel += (Math.random()-0.5)*0.08;
+      const a=pens[0], b=pens[1], dx=b.x-a.x, dy=b.y-a.y, dist=Math.hypot(dx,dy), minDist=RADIUS*2*0.72;
+      if(dist<minDist && dist>0){
+        const nx=dx/dist, ny=dy/dist, overlap=(minDist-dist)/2;
+        a.x-=nx*overlap; a.y-=ny*overlap; b.x+=nx*overlap; b.y+=ny*overlap;
+        const rvx=b.vx-a.vx, rvy=b.vy-a.vy, velAlongNormal=rvx*nx+rvy*ny;
+        if(velAlongNormal<0){
+          const restitution=0.92, impulse=-(1+restitution)*velAlongNormal/2;
+          a.vx-=impulse*nx; a.vy-=impulse*ny; b.vx+=impulse*nx; b.vy+=impulse*ny;
         }
-        // face travel direction a bit
         moving = true;
       }
     }
-
-    // check for falling off desk
+    fallenIndex = -1;
     for(let i=0;i<pens.length;i++){
       const p = pens[i];
-      if(p.alive && (p.x < MARGIN-6 || p.x > W-MARGIN+6 || p.y < MARGIN-6 || p.y > H-MARGIN+6)){
-        p.alive = false;
-        fallenIndex = i;
-      }
-      if(p.alive){
-        // orient pen roughly along velocity when moving fast
-        const speed = Math.hypot(p.vx,p.vy);
-        if(speed > 0.4){
-          p.angle = Math.atan2(p.vy,p.vx);
-        }
-      }
+      if(p.alive && (p.x<MARGIN-6 || p.x>W-MARGIN+6 || p.y<MARGIN-6 || p.y>H-MARGIN+6)){ p.alive=false; fallenIndex=i; }
+      if(p.alive){ const speed=Math.hypot(p.vx,p.vy); if(speed>0.4) p.angle=Math.atan2(p.vy,p.vx); }
     }
-
     return moving;
   }
 
-  function endRoundIfNeeded(){
-    if(fallenIndex !== -1 && !roundLocked){
+  // ---------- Round / match flow (local mode) ----------
+  function localStartRound(showIntro){
+    makePens([profile.equipped, 'classic-red']);
+    updateDots();
+    isSimulating=false; roundLocked=false; fallenIndex=-1;
+    roundNumEl.textContent = round; updateTurnIndicator();
+    if(showIntro) showBanner('Round '+round, names[turn]+' goes first. Drag your pen backward and let go to flick it.', 'Start');
+  }
+  function localResetMatch(){
+    scores=[0,0]; round=1; turn=0; matchOver=false; updateScores(); localStartRound(true);
+  }
+  async function localEndRoundIfNeeded(){
+    if(fallenIndex!==-1 && !roundLocked){
       roundLocked = true;
-      const winner = fallenIndex === 0 ? 1 : 0;
-      scores[winner]++;
-      updateScores();
-      setTimeout(()=>{
-        if(scores[winner] >= WIN_SCORE){
-          matchOver = true;
-          const name = winner===0 ? 'Blue' : 'Red';
-          showBanner(name+' wins the fight!', 'Final score '+scores[0]+' – '+scores[1]+'. Tap to duel again.', 'Rematch');
+      const winner = fallenIndex===0?1:0;
+      scores[winner]++; updateScores();
+      await awardCoins(10);
+      setTimeout(async ()=>{
+        if(scores[winner]>=WIN_SCORE){
+          matchOver=true;
+          await awardCoins(30);
+          showBanner(names[winner]+' wins the fight!', 'Final score '+scores[0]+' – '+scores[1]+'. +30 bonus coins. Tap to duel again.', 'Rematch');
         } else {
-          round++;
-          turn = winner; // loser's opponent... actually give next start to the round loser to balance
-          turn = fallenIndex; // player who fell off starts next round
-          startRound(true);
+          round++; turn = fallenIndex; localStartRound(true);
         }
       }, 900);
     }
   }
 
-  // ---------- Input ----------
+  function startLocalGame(){
+    mode='local'; names=['Blue (P1)','Red (P2)'];
+    document.getElementById('leaveGameLink').textContent = '← leave match';
+    bannerBtn.onclick = ()=>{ if(matchOver){ localResetMatch(); } hideBanner(); };
+    localResetMatch();
+    showScreen('game');
+  }
+
+  // ---------- Input (shared) ----------
   function getPointerPos(e){
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-      x: (clientX-rect.left) * (W/rect.width),
-      y: (clientY-rect.top) * (H/rect.height)
-    };
+    return { x:(clientX-rect.left)*(W/rect.width), y:(clientY-rect.top)*(H/rect.height) };
   }
-
+  function canAct(){
+    if(isSimulating || matchOver || roundLocked) return false;
+    if(mode==='online' && turn!==mySlot) return false;
+    return true;
+  }
   function onDown(e){
-    if(isSimulating || matchOver || roundLocked) return;
-    const pos = getPointerPos(e);
-    const p = pens[turn];
-    const d = Math.hypot(pos.x-p.x, pos.y-p.y);
-    if(d < RADIUS*2.2){
-      dragging = true;
-      dragStart = {x:p.x, y:p.y};
-      dragCurrent = pos;
-      stage.style.cursor = 'grabbing';
-      e.preventDefault();
+    if(!canAct()) return;
+    const pos = getPointerPos(e); const p = pens[turn];
+    if(Math.hypot(pos.x-p.x,pos.y-p.y) < RADIUS*2.2){
+      dragging=true; dragStart={x:p.x,y:p.y}; dragCurrent=pos; stage.style.cursor='grabbing'; e.preventDefault();
     }
   }
-  function onMove(e){
+  function onMove(e){ if(!dragging) return; dragCurrent=getPointerPos(e); e.preventDefault(); }
+  function onUp(){
     if(!dragging) return;
-    dragCurrent = getPointerPos(e);
-    e.preventDefault();
+    dragging=false; stage.style.cursor='grab';
+    let dx=dragCurrent.x-dragStart.x, dy=dragCurrent.y-dragStart.y, dist=Math.hypot(dx,dy);
+    if(dist>MAX_PULL){ const s=MAX_PULL/dist; dx*=s; dy*=s; dist=MAX_PULL; }
+    if(dist<8) return;
+    const vx=-dx*POWER_SCALE, vy=-dy*POWER_SCALE;
+    if(mode==='local'){
+      pens[turn].vx=vx; pens[turn].vy=vy; pens[turn].angVel=(Math.random()-0.5)*0.05;
+      isSimulating=true;
+    } else {
+      applyOnlineAction(turn, vx, vy);
+    }
   }
-  function onUp(e){
-    if(!dragging) return;
-    dragging = false;
-    stage.style.cursor = 'grab';
-    const p = pens[turn];
-    let dx = dragCurrent.x - dragStart.x;
-    let dy = dragCurrent.y - dragStart.y;
-    let dist = Math.hypot(dx,dy);
-    if(dist > MAX_PULL){ const s = MAX_PULL/dist; dx*=s; dy*=s; dist = MAX_PULL; }
-    if(dist < 8){ return; } // too small a flick, ignore
-    p.vx = -dx * POWER_SCALE;
-    p.vy = -dy * POWER_SCALE;
-    p.angVel = (Math.random()-0.5)*0.05;
-    isSimulating = true;
-  }
-
   canvas.addEventListener('mousedown', onDown);
   canvas.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onUp);
@@ -534,24 +495,244 @@
 
   // ---------- Main loop ----------
   function loop(){
-    ctx.clearRect(0,0,W,H);
-    drawWoodDesk();
-    for(const p of pens) drawPen(p);
-    drawAimLine();
-
-    if(isSimulating){
-      const moving = stepPhysics();
-      endRoundIfNeeded();
-      if(!moving && fallenIndex === -1){
-        isSimulating = false;
-        turn = 1-turn;
-        updateTurnIndicator();
+    if(document.getElementById('screen-game').classList.contains('active')){
+      ctx.clearRect(0,0,W,H); drawWoodDesk();
+      for(const p of pens) drawPen(p);
+      drawAimLine();
+      if(isSimulating){
+        const moving = stepPhysics();
+        if(mode==='local'){
+          localEndRoundIfNeeded();
+          if(!moving && fallenIndex===-1 && !roundLocked){ isSimulating=false; turn=1-turn; updateTurnIndicator(); }
+        } else {
+          onlineLocalSimTick(moving);
+        }
       }
     }
     requestAnimationFrame(loop);
   }
 
-  resetMatch();
+  // ================= ONLINE MULTIPLAYER =================
+  const myId = 'p_' + Math.random().toString(36).slice(2,10);
+  let roomCode = null, room = null, pollTimer = null;
+  let lastAppliedActionSeq = 0;
+  let pendingResolveSeq = null;
+  let awaitingSync = false;
+
+  function randomCode(){
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    let c=''; for(let i=0;i<5;i++) c+=chars[Math.floor(Math.random()*chars.length)];
+    return c;
+  }
+
+  async function createRoom(){
+    showScreen('create');
+    document.getElementById('createStatus').innerHTML = '<span class="spinner"></span>setting up room…';
+    roomCode = randomCode();
+    document.getElementById('createdCode').textContent = roomCode;
+    room = {
+      code:roomCode, status:'waiting',
+      hostId:myId, guestId:null,
+      hostSkin:profile.equipped, guestSkin:null,
+      turnSlot:0, round:1, scores:[0,0],
+      pens:startPositions(), actionSeq:0, pendingAction:null, processedSeq:0,
+      winnerSlot:null
+    };
+    try{
+      await window.storage.set('room:'+roomCode, JSON.stringify(room), true);
+      document.getElementById('createStatus').innerHTML = '<span class="spinner"></span>waiting for someone to join…';
+      pollAsHostWaiting();
+    }catch(e){
+      document.getElementById('createStatus').textContent = "Couldn't create a room. Check your connection and try again.";
+    }
+  }
+  document.getElementById('copyCodeBtn').addEventListener('click', ()=>{
+    if(!roomCode) return;
+    navigator.clipboard && navigator.clipboard.writeText(roomCode).catch(()=>{});
+    const btn = document.getElementById('copyCodeBtn');
+    const old = btn.textContent; btn.textContent='Copied!'; setTimeout(()=>btn.textContent=old, 1200);
+  });
+  document.getElementById('cancelCreateBtn').addEventListener('click', ()=>{ leaveRoomIfAny(); showScreen('menu'); });
+
+  function pollAsHostWaiting(){
+    clearInterval(pollTimer);
+    pollTimer = setInterval(async ()=>{
+      try{
+        const r = await window.storage.get('room:'+roomCode, true);
+        if(r && r.value){
+          const remote = JSON.parse(r.value);
+          if(remote.status==='playing'){
+            room = remote; clearInterval(pollTimer);
+            mySlot = 0;
+            beginOnlineMatch();
+          }
+        }
+      }catch(e){}
+    }, 1200);
+  }
+
+  document.getElementById('joinBtn').addEventListener('click', async ()=>{
+    const code = document.getElementById('joinInput').value.trim().toUpperCase();
+    const statusEl = document.getElementById('joinStatus');
+    if(code.length<4){ statusEl.textContent='Enter the 5-letter code your friend shared.'; return; }
+    statusEl.innerHTML = '<span class="spinner"></span>joining…';
+    try{
+      const r = await window.storage.get('room:'+code, true);
+      if(!r || !r.value){ statusEl.textContent='No room found with that code.'; return; }
+      const remote = JSON.parse(r.value);
+      if(remote.status!=='waiting'){ statusEl.textContent='That room is already full or finished.'; return; }
+      remote.guestId = myId;
+      remote.guestSkin = profile.equipped;
+      remote.status = 'playing';
+      remote.pens = startPositions();
+      remote.turnSlot = 0;
+      await window.storage.set('room:'+code, JSON.stringify(remote), true);
+      roomCode = code; room = remote; mySlot = 1;
+      beginOnlineMatch();
+    }catch(e){
+      statusEl.textContent = "Couldn't join. Check your connection and try again.";
+    }
+  });
+
+  function beginOnlineMatch(){
+    mode='online';
+    names = ['Host','Guest'];
+    document.getElementById('leaveGameLink').textContent = '← leave match';
+    scores = room.scores.slice(); round = room.round; turn = room.turnSlot; matchOver=false;
+    lastAppliedActionSeq = room.actionSeq; awaitingSync=false; pendingResolveSeq=null;
+    makePens([room.hostSkin, room.guestSkin || 'classic-red']);
+    pens[0].x=room.pens[0].x; pens[0].y=room.pens[0].y;
+    pens[1].x=room.pens[1].x; pens[1].y=room.pens[1].y;
+    updateDots(); updateScores(); roundNumEl.textContent = round;
+    isSimulating=false; roundLocked=false; fallenIndex=-1;
+    updateTurnIndicator();
+    bannerBtn.onclick = ()=>{ hideBanner(); };
+    const myLabel = mySlot===0 ? 'the Host' : 'the Guest';
+    showBanner('Opponent found!', "You are "+myLabel+". "+(turn===mySlot?"You go first.":"They go first.")+" Drag your pen back and release to flick.", "Let's go");
+    showScreen('game');
+    startOnlinePolling();
+  }
+
+  function startOnlinePolling(){
+    clearInterval(pollTimer);
+    pollTimer = setInterval(pollRoom, 900);
+  }
+  async function pollRoom(){
+    if(!roomCode || mode!=='online') return;
+    try{
+      const r = await window.storage.get('room:'+roomCode, true);
+      if(!r || !r.value) return;
+      const remote = JSON.parse(r.value);
+      room = remote;
+
+      if(remote.pendingAction && remote.pendingAction.seq > lastAppliedActionSeq && remote.pendingAction.slot !== mySlot && !isSimulating){
+        const act = remote.pendingAction;
+        lastAppliedActionSeq = act.seq;
+        pens[act.slot].vx = act.vx; pens[act.slot].vy = act.vy;
+        pens[act.slot].angVel = seededAng(act.seq);
+        isSimulating = true;
+        roundLocked = false;
+        awaitingSync = false;
+      }
+
+      if(remote.processedSeq && remote.processedSeq >= lastAppliedActionSeq && (awaitingSync || (!isSimulating && remote.turnSlot !== turn) || remote.round !== round)){
+        syncFromRoom(remote);
+      }
+
+      if(remote.status==='finished' && !matchOver){
+        matchOver = true;
+        const name = remote.winnerSlot===mySlot ? 'You' : 'Your opponent';
+        showBanner(name+' won the fight!', 'Final score '+remote.scores[0]+' – '+remote.scores[1]+'.', 'Back to menu');
+        bannerBtn.onclick = ()=>{ hideBanner(); leaveRoomIfAny(); showScreen('menu'); };
+      }
+    }catch(e){}
+  }
+
+  function syncFromRoom(remote){
+    scores = remote.scores.slice(); round = remote.round; turn = remote.turnSlot;
+    updateScores(); roundNumEl.textContent = round;
+    if(!isSimulating){
+      pens[0].x=remote.pens[0].x; pens[0].y=remote.pens[0].y; pens[0].vx=0; pens[0].vy=0; pens[0].alive=true; pens[0].fallProgress=0; pens[0].angle=0.06;
+      pens[1].x=remote.pens[1].x; pens[1].y=remote.pens[1].y; pens[1].vx=0; pens[1].vy=0; pens[1].alive=true; pens[1].fallProgress=0; pens[1].angle=Math.PI-0.06;
+      roundLocked=false; fallenIndex=-1; awaitingSync=false;
+      updateTurnIndicator();
+    }
+  }
+
+  async function applyOnlineAction(slot, vx, vy){
+    const seq = (room.actionSeq||0) + 1;
+    pens[slot].vx = vx; pens[slot].vy = vy; pens[slot].angVel = seededAng(seq);
+    isSimulating = true; pendingResolveSeq = seq; lastAppliedActionSeq = seq;
+    try{
+      room.actionSeq = seq;
+      room.pendingAction = { seq, slot, vx, vy };
+      await window.storage.set('room:'+roomCode, JSON.stringify(room), true);
+    }catch(e){}
+  }
+
+  async function onlineLocalSimTick(moving){
+    if(!moving){
+      isSimulating = false;
+      const iWasActor = pendingResolveSeq !== null;
+      if(iWasActor){
+        pendingResolveSeq = null;
+        await resolveOnlineRound();
+      } else {
+        awaitingSync = true;
+      }
+    }
+  }
+
+  async function resolveOnlineRound(){
+    if(roundLocked) return;
+    roundLocked = true;
+    let newScores = scores.slice(), newRound = round, newTurn, newPens, finished=false, winnerSlot=null;
+    if(fallenIndex !== -1){
+      const winner = fallenIndex===0?1:0;
+      newScores[winner]++;
+      await awardCoins(10);
+      if(newScores[winner] >= WIN_SCORE){
+        finished = true; winnerSlot = winner;
+        await awardCoins(30);
+        newPens = startPositions(); newTurn = fallenIndex;
+      } else {
+        newRound = round+1; newTurn = fallenIndex; newPens = startPositions();
+      }
+    } else {
+      newTurn = 1-turn; newPens = [ {x:pens[0].x,y:pens[0].y}, {x:pens[1].x,y:pens[1].y} ];
+    }
+    room.scores = newScores; room.round = newRound; room.turnSlot = newTurn; room.pens = newPens;
+    room.pendingAction = null; room.processedSeq = room.actionSeq;
+    if(finished){ room.status='finished'; room.winnerSlot = winnerSlot; }
+    try{ await window.storage.set('room:'+roomCode, JSON.stringify(room), true); }catch(e){}
+    syncFromRoom(room);
+    if(finished){
+      matchOver = true;
+      const name = winnerSlot===mySlot ? 'You' : 'Your opponent';
+      showBanner(name+' won the fight!', 'Final score '+room.scores[0]+' – '+room.scores[1]+'.', 'Back to menu');
+      bannerBtn.onclick = ()=>{ hideBanner(); leaveRoomIfAny(); showScreen('menu'); };
+    } else {
+      showBanner('Round '+room.round, (newTurn===mySlot?'Your turn':"Opponent's turn")+' first this round.', 'Continue');
+    }
+  }
+
+  async function leaveRoomIfAny(){
+    clearInterval(pollTimer);
+    if(mode==='online' && roomCode){
+      try{
+        const r = await window.storage.get('room:'+roomCode, true);
+        if(r && r.value){
+          const remote = JSON.parse(r.value);
+          remote.status = 'finished';
+          await window.storage.set('room:'+roomCode, JSON.stringify(remote), true);
+        }
+      }catch(e){}
+    }
+    roomCode=null; room=null; mode='local';
+  }
+
+  // ================= INIT =================
+  loadProfile();
   requestAnimationFrame(loop);
 })();
 </script>
